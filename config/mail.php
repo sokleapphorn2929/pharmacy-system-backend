@@ -73,9 +73,9 @@ return [
             // ],
         ],
 
-        'resend' => [
-            'transport' => 'resend',
-        ],
+        // 'resend' => [
+        //     'transport' => 'resend',
+        // ],
 
         'sendmail' => [
             'transport' => 'sendmail',
