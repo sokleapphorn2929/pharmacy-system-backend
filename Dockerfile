@@ -1,5 +1,5 @@
 # Use PHP image with Debian Bullseye (better OpenSSL support)
-FROM php:8.5-fpm-bullseye
+FROM php:8.5-fpm-bookworm
 
 # Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
