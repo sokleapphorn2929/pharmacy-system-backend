@@ -1,4 +1,4 @@
-# Use PHP image with Debian Bullseye (better OpenSSL support)
+# Use PHP image with Debian Bookworm
 FROM php:8.3-fpm-bookworm
 
 # Install system dependencies and PHP extensions
@@ -10,13 +10,15 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libssl-dev \
     libcurl4-openssl-dev \
+    pkg-config \
+    build-essential \
     zip \
     unzip \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
-# Install MongoDB extension with SSL/TLS support
+# Install MongoDB extension
 RUN pecl install mongodb \
-    && echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
+    && docker-php-ext-enable mongodb
 
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
@@ -28,7 +30,7 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Expose port for Render
 EXPOSE 10000
