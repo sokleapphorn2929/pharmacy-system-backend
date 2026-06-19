@@ -102,21 +102,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [InvoicesController::class, 'destroy']);
     });
 
-    // Route::prefix('favourites')->group(function (){
-    //     Route::get('/', [FavouritesController::class, 'index']);
-    //     Route::post('/', [FavouritesController::class, 'store']);
-    //     Route::get('/{id}', [FavouritesController::class, 'show']);
-    //     Route::put('/{id}', [FavouritesController::class, 'update']);
-    //     Route::delete('/{id}', [FavouritesController::class, 'destroy']);
-    // });
+    Route::prefix('favourites')->group(function (){
+        Route::get('/', [FavouritesController::class, 'index']);
+        Route::post('/', [FavouritesController::class, 'store']);
+        Route::get('/{id}', [FavouritesController::class, 'show']);
+        Route::put('/{id}', [FavouritesController::class, 'update']);
+        Route::delete('/{id}', [FavouritesController::class, 'destroy']);
+    });
 
-    // Route::prefix('cards')->group(function (){
-    //     Route::get('/', [CardsController::class, 'index']);
-    //     Route::post('/', [CardsController::class, 'store']);
-    //     Route::get('/{id}', [CardsController::class, 'show']);
-    //     Route::put('/{id}', [CardsController::class, 'update']);
-    //     Route::delete('/{id}', [CardsController::class, 'destroy']);
-    // });
+    Route::prefix('cards')->group(function (){
+        Route::get('/', [CardsController::class, 'index']);
+        Route::post('/', [CardsController::class, 'store']);
+        Route::get('/{id}', [CardsController::class, 'show']);
+        Route::put('/{id}', [CardsController::class, 'update']);
+        Route::delete('/{id}', [CardsController::class, 'destroy']);
+    });
 });
 
 Route::prefix('categories')->group(function (){
@@ -142,20 +142,4 @@ Route::prefix('orders')->group(function (){
 Route::prefix('order-items')->group(function (){
     Route::get('/', [OrderItemsController::class, 'index']);
     Route::get('/{id}', [OrderItemsController::class, 'show']);
-});
-
-Route::prefix('favourites')->group(function (){
-    Route::get('/', [FavouritesController::class, 'index']);
-    Route::post('/', [FavouritesController::class, 'store']);
-    Route::get('/{id}', [FavouritesController::class, 'show']);
-    Route::put('/{id}', [FavouritesController::class, 'update']);
-    Route::delete('/{id}', [FavouritesController::class, 'destroy']);
-});
-
-Route::prefix('cards')->group(function (){
-    Route::get('/', [CardsController::class, 'index']);
-    Route::post('/', [CardsController::class, 'store']);
-    Route::get('/{id}', [CardsController::class, 'show']);
-    Route::put('/{id}', [CardsController::class, 'update']);
-    Route::delete('/{id}', [CardsController::class, 'destroy']);
 });
