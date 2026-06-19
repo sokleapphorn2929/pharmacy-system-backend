@@ -87,17 +87,17 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('payments')->group(function (){
-        // Route::get('/', [PaymentsController::class, 'index']);
+        Route::get('/', [PaymentsController::class, 'index']);
         Route::post('/', [PaymentsController::class, 'store']);
-        // Route::get('/{id}', [PaymentsController::class, 'show']);
+        Route::get('/{id}', [PaymentsController::class, 'show']);
         Route::put('/{id}', [PaymentsController::class, 'update']);
         Route::delete('/{id}', [PaymentsController::class, 'destroy']);
     });
 
     Route::prefix('invoices')->group(function (){
-        // Route::get('/', [InvoicesController::class, 'index']);
+        Route::get('/', [InvoicesController::class, 'index']);
         Route::post('/', [InvoicesController::class, 'store']);
-        // Route::get('/{id}', [InvoicesController::class, 'show']);
+        Route::get('/{id}', [InvoicesController::class, 'show']);
         Route::put('/{id}', [InvoicesController::class, 'update']);
         Route::delete('/{id}', [InvoicesController::class, 'destroy']);
     });
@@ -142,16 +142,6 @@ Route::prefix('orders')->group(function (){
 Route::prefix('order-items')->group(function (){
     Route::get('/', [OrderItemsController::class, 'index']);
     Route::get('/{id}', [OrderItemsController::class, 'show']);
-});
-
-Route::prefix('payments')->group(function (){
-    Route::get('/', [PaymentsController::class, 'index']);
-    Route::get('/{id}', [PaymentsController::class, 'show']);
-});
-
-Route::prefix('invoices')->group(function (){
-    Route::get('/', [InvoicesController::class, 'index']);
-    Route::get('/{id}', [InvoicesController::class, 'show']);
 });
 
 Route::prefix('favourites')->group(function (){
