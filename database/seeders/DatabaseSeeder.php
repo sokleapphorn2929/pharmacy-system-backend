@@ -76,13 +76,6 @@ class DatabaseSeeder extends Seeder
         // 5. Seed Collection: PRODUCTS
         // ------------------------------------------------------------
         $productIds = [];
-        $productPics = [
-            'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=500&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1616679911721-ebd6e4149688?q=80&w=500&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?q=80&w=500&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=500&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1607619056574-7b8d304f3c6f?q=80&w=500&auto=format&fit=crop'
-        ];
 
         $medicineNames = [
             'Paracetamol 500mg', 'Amoxicillin 250mg', 'Vitamin C 1000mg', 'Ibuprofen 400mg', 'Cetirizine 10mg',
@@ -105,8 +98,8 @@ class DatabaseSeeder extends Seeder
                 'product_manufactured_date' => $faker->date('Y-m-d', 'now'),
                 'product_expired_date' => $faker->date('Y-m-d', '+3 years'),
                 'product_detail' => $faker->sentence(12),
-                'product_pic' => $faker->randomElement($productPics),
-                'product_pic_public_id' => 'products/prod_' . Str::random(10),
+                'product_pic' => null,
+                'product_pic_public_id' => null,
                 'category_id' => $faker->randomElement($categoryIds), 
                 'brand_id' => $faker->randomElement($brandIds),
                 'admin_id' => $adminId, 

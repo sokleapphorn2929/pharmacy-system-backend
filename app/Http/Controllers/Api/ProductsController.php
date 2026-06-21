@@ -20,7 +20,7 @@ class ProductsController extends Controller
 
         return response()->json([
             "message" => "Products retrieved successfully",
-            "date" => $products
+            "data" => $products
         ]);
     }
 

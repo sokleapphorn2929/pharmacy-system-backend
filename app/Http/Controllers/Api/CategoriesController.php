@@ -19,7 +19,7 @@ class CategoriesController extends Controller
 
         return response()->json([
             "message" => "Categories retrieved successfully",
-            "date" => $categories
+            "data" => $categories
         ]);
     }
 
@@ -113,7 +113,7 @@ class CategoriesController extends Controller
 
         return response()->json([
             "message" => "Category updated successfully",
-            "date" => $categories
+            "data" => $categories
         ]);
 
     }

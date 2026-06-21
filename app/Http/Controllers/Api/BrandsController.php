@@ -19,7 +19,7 @@ class BrandsController extends Controller
 
         return response()->json([
             "message" => "Brands retrieved successfully",
-            "date" => $brands
+            "data" => $brands
         ]);
     }
 
@@ -117,7 +117,7 @@ class BrandsController extends Controller
 
         return response()->json([
             "message" => "Brand updated successfully",
-            "date" => $brands
+            "data" => $brands
         ]);
     }
 
