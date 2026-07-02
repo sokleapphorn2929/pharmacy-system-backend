@@ -61,7 +61,7 @@ class CategoriesController extends Controller
      */
     public function show(string $id)
     {
-        $categories = Categories::findOrFail($id);
+        $categories = Categories::find($id);
 
         if(!$categories){
             return response()->json([
