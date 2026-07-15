@@ -17,7 +17,13 @@ class CategoriesController extends Controller
     {
         $categories = Categories::all();
 
-        $categories = Categories::withCount('products')->get();
+        $categories->map(function($category) {
+            $categoryId = (string) $category->id; 
+            
+            $category->products_count = Products::where('category_id', $categoryId)->count();
+            
+            return $category;
+        });
 
         return response()->json([
             "message" => "Categories retrieved successfully",
