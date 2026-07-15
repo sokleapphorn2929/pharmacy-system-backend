@@ -17,6 +17,8 @@ class CategoriesController extends Controller
     {
         $categories = Categories::all();
 
+        $categories = Categories::withCount('products')->get();
+
         return response()->json([
             "message" => "Categories retrieved successfully",
             "data" => $categories
