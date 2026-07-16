@@ -16,10 +16,10 @@ class Favourites extends Model
         'product_id',
     ];
 
-    protected $casts = [
-        'product_id' => ObjectId::class,
-        'user_id' => ObjectId::class,
-    ];
+    // protected $casts = [
+    //     'product_id' => ObjectId::class,
+    //     'user_id' => ObjectId::class,
+    // ];
 
     public function users(){
         return $this->belongsTo(User::class, 'user_id', '_id');
