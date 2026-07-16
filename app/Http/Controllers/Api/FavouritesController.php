@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Favourites;
 use Illuminate\Http\Request;
+use MongoDB\Laravel\Eloquent\Casts\ObjectId;
 
 class FavouritesController extends Controller
 {
@@ -13,17 +14,17 @@ class FavouritesController extends Controller
      */
     public function index()
     {
-        // $favourites = Favourites::with('product')->get();
-
-        // return response()->json([
-        //     "message" => "Favourite retrieved successfully",
-        //     "data" => $favourites
-        // ]);
-
         $userId = auth()->id();
 
-        // Query using a simple where clause, Laravel MongoDB will handle the internal casting
-        $favourites = Favourites::where('user_id', $userId)
+        // Enforce native MongoDB ObjectId conversion for the query match
+        try {
+            $mongoUserId = new ObjectId($userId);
+        } catch (\Exception $e) {
+            $mongoUserId = $userId; // Fallback if it's already an instance
+        }
+
+        // Query using the true BSON ObjectId instance
+        $favourites = Favourites::where('user_id', $mongoUserId)
             ->with('products')
             ->get();
 
@@ -45,8 +46,14 @@ class FavouritesController extends Controller
         $favourites = new Favourites();
         $favourites->fill($validatedData);
         
-        $favourites->user_id = auth()->id();
-        $favourites->product_id = $request->product_id;
+        // Explicitly force database documents to record as real ObjectIds
+        try {
+            $favourites->user_id = new ObjectId(auth()->id());
+            $favourites->product_id = new ObjectId($request->product_id);
+        } catch (\Exception $e) {
+            $favourites->user_id = auth()->id();
+            $favourites->product_id = $request->product_id;
+        }
         
         $favourites->save();
 
