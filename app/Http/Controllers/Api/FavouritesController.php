@@ -24,7 +24,7 @@ class FavouritesController extends Controller
 
         // Query using a simple where clause, Laravel MongoDB will handle the internal casting
         $favourites = Favourites::where('user_id', $userId)
-            ->with('product')
+            ->with('products')
             ->get();
 
         return response()->json([
