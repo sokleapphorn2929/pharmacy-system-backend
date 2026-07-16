@@ -13,7 +13,19 @@ class FavouritesController extends Controller
      */
     public function index()
     {
-        $favourites = Favourites::with('product')->get();
+        // $favourites = Favourites::with('product')->get();
+
+        // return response()->json([
+        //     "message" => "Favourite retrieved successfully",
+        //     "data" => $favourites
+        // ]);
+
+        $userId = auth()->id();
+
+        // Query using a simple where clause, Laravel MongoDB will handle the internal casting
+        $favourites = Favourites::where('user_id', $userId)
+            ->with('product')
+            ->get();
 
         return response()->json([
             "message" => "Favourite retrieved successfully",
