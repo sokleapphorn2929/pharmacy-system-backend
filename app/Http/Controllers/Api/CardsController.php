@@ -29,7 +29,7 @@ class CardsController extends Controller
         $validatedData = $request->validate([
             'user_id' => 'nullable|exists:users,_id',
             'product_id' => 'nullable|exists:products,_id',
-            'qty' => 'required|numeric|min:1',
+            'qty' => 'required|numeric',
         ]);
 
         $userId = auth()->id();
@@ -96,7 +96,7 @@ class CardsController extends Controller
         $validatedData = $request->validate([
             'user_id' => 'nullable|exists:users,_id',
             'product_id' => 'nullable|exists:products,_id',
-            'qty' => 'sometimes|numeric|min:1',
+            'qty' => 'sometimes|numeric',
         ]);
 
         $cards->fill($validatedData);
