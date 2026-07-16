@@ -32,11 +32,28 @@ class CardsController extends Controller
             'qty' => 'required|numeric|min:1',
         ]);
 
-        $validatedData['user_id'] = auth()->id();
+        $userId = auth()->id();
+        $productId = $validatedData['product_id'];
+        $incomingQty = $validatedData['qty'];
+
+        $cards = Cards::where('user_id', $userId)
+                    ->where('product_id', $productId)
+                    ->first();
+
+        if ($cards) {
+            $cards->qty += $incomingQty;
+            $cards->save();
+
+            return response()->json([
+                "message" => "Card quantity updated successfully",
+                "data" => $cards
+            ]);
+        }
 
         $cards = new Cards();
-        $cards -> fill($validatedData);
-        $cards -> save();
+        $validatedData['user_id'] = $userId; // Ensure correct user mapping
+        $cards->fill($validatedData);
+        $cards->save();
 
         return response()->json([
             "message" => "Card insert successfully",
