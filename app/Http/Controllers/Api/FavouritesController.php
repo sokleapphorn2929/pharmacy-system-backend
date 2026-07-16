@@ -13,7 +13,7 @@ class FavouritesController extends Controller
      */
     public function index()
     {
-        $favourites = Favourites::all();
+        $favourites = Favourites::with('product')->get();
 
         return response()->json([
             "message" => "Favourite retrieved successfully",
