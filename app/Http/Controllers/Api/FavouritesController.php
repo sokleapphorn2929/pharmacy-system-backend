@@ -39,19 +39,20 @@ class FavouritesController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'user_id' => 'nullable|exists:users,_id',
-            'product_id' => 'nullable|exists:products,_id',
+            'product_id' => 'required|exists:products,_id',
         ]);
 
-        $validatedData['user_id'] = auth()->id();
-
         $favourites = new Favourites();
-        $favourites -> fill($validatedData);
-        $favourites -> save();
+        $favourites->fill($validatedData);
+        
+        $favourites->user_id = auth()->id();
+        $favourites->product_id = $request->product_id;
+        
+        $favourites->save();
 
         return response()->json([
             "message" => "Favourite insert successfully",
-            "data" => $favourites
+            "data" => $favourites->load('products')
         ]);
     }
 
