@@ -15,7 +15,16 @@ class OrdersController extends Controller
      */
     public function index()
     {
-        $orders = Orders::all();
+        // $orders = Orders::all();
+
+        // return response()->json([
+        //     "message" => "Orders retrieved successfully",
+        //     "data" => $orders
+        // ]);
+
+        $orders = Orders::where('user_id', auth()->id())
+                        ->with('items') 
+                        ->get();
 
         return response()->json([
             "message" => "Orders retrieved successfully",
