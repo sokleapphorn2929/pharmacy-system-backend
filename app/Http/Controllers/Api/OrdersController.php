@@ -114,23 +114,39 @@ class OrdersController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+
     public function destroy(string $id)
     {
-        $orders = Orders::find($id);
+        // 1. Find the order first
+        $order = Orders::find($id);
 
-        if(!$orders){
+        if (!$order) {
             return response()->json([
                 "message" => "Order not found"
             ], 404);
         }
 
-        OrderItems::where('order_item_id', $id)->delete();
-        Payments::where('payment_id', $id)->update(['payment_id' => null]);
+        try {
+            // 2. Use a transaction to ensure all related data is cleaned up
+            DB::transaction(function () use ($id, $order) {
+                // Delete items using 'order_id' (not 'order_item_id')
+                OrderItems::where('order_id', $id)->delete();
 
-        $orders->delete();
+                // Handle payments: either delete or clear reference
+                Payments::where('order_id', $id)->delete();
 
-        return response()->json([
-            "message" => "Order deleted successfully"
-        ]);
+                // Finally, delete the order
+                $order->delete();
+            });
+
+            return response()->json([
+                "message" => "Order and all related items deleted successfully"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Failed to delete order",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
 }
