@@ -16,13 +16,7 @@ class OrdersController extends Controller
      */
     public function index()
     {
-        $orders = Orders::where('user_id', auth()->id())->get();
-        
-        // DEBUG: Manually check if items exist for the first order
-        foreach ($orders as $order) {
-            // This will print the items to your logs/console if the relationship works
-            \Log::info('Order Items for ' . $order->_id . ': ' . $order->order_items()->count());
-        }
+        $orders = Orders::all();
 
         return response()->json([
             "message" => "Orders retrieved successfully",
