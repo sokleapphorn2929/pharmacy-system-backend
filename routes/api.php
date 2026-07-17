@@ -25,8 +25,8 @@ Route::post('/users/verify-otp', [UserController::class, 'verify']);
 Route::post('/admins', [AdminController::class, 'store']);
 Route::post('/admins/login', [AdminController::class, 'login']);
 
-Route::post('/password-request/{id}', [UserController::class, 'requestPasswordUpdate']);
-Route::post('/password-confirm/{id}', [UserController::class, 'confirmPasswordUpdate']);
+Route::post('/users/password-request/{id}', [UserController::class, 'requestPasswordUpdate']);
+Route::post('/users/password-confirm/{id}', [UserController::class, 'confirmPasswordUpdate']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
