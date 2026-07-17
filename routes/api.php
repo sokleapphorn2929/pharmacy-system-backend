@@ -29,6 +29,9 @@ Route::post('/users/password-request/{id}', [UserController::class, 'requestPass
 Route::post('/users/password-confirm/{id}', [UserController::class, 'confirmPasswordUpdate']);
 Route::post('/users/find-id', [UserController::class, 'findIdByEmail']);
 
+Route::post('/users/delete-request/{id}', [UserController::class, 'initiateDelete']);
+Route::delete('/users/confirm-delete/{id}', [UserController::class, 'confirmDelete']);
+
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('users')->group(function(){

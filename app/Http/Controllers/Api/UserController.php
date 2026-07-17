@@ -411,6 +411,41 @@ class UserController extends Controller
         ]);
     }
 
+    // Step 1: Send the code (Trigger this via POST)
+    public function initiateDelete(string $id)
+    {
+        $user = User::find($id);
+        if(!$user) return response()->json(["message" => "User not found"], 404);
+
+        $verificationCode = random_int(100000, 999999);
+        $deleteKey = 'pending_delete_user_' . $user->email;
+
+        Cache::put($deleteKey, $verificationCode, now()->addMinutes(10));
+        Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
+
+        return response()->json(["message" => "Verification code sent to your email."]);
+    }
+
+    // Step 2: Actually delete the user (Trigger this via DELETE)
+    public function confirmDelete(Request $request, string $id)
+    {
+        $user = User::find($id);
+        $request->validate(['code' => 'required']);
+
+        $deleteKey = 'pending_delete_user_' . $user->email;
+        $storedCode = Cache::get($deleteKey);
+
+        if (!$storedCode || $request->code != $storedCode) {
+            return response()->json(["message" => "Invalid or expired verification code."], 422);
+        }
+
+        // Code is correct, proceed with deletion
+        $user->delete();
+        Cache::forget($deleteKey);
+
+        return response()->json(["message" => "Account successfully deleted."]);
+    }
+
     /**
      * Remove the specified resource from storage.
      */
