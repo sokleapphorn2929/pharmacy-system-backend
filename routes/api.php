@@ -25,6 +25,9 @@ Route::post('/users/verify-otp', [UserController::class, 'verify']);
 Route::post('/admins', [AdminController::class, 'store']);
 Route::post('/admins/login', [AdminController::class, 'login']);
 
+Route::post('/password-request/{id}', [UserController::class, 'requestPasswordUpdate']);
+Route::post('/password-confirm/{id}', [UserController::class, 'confirmPasswordUpdate']);
+
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('users')->group(function(){
@@ -32,8 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [UserController::class, 'show']);
         Route::put('/{id}', [UserController::class, 'update']);
         Route::put('/password-with-oldpw/{id}', [UserController::class, 'updatePassword']);
-        Route::post('/password-request/{id}', [UserController::class, 'requestPasswordUpdate']);
-        Route::post('/password-confirm/{id}', [UserController::class, 'confirmPasswordUpdate']);
+        // Route::post('/password-request/{id}', [UserController::class, 'requestPasswordUpdate']);
+        // Route::post('/password-confirm/{id}', [UserController::class, 'confirmPasswordUpdate']);
         Route::delete('/{id}', [UserController::class, 'destroy']);
         Route::post('/logout', [UserController::class, 'logout']);
     });
