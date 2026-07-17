@@ -430,6 +430,8 @@ class UserController extends Controller
     public function confirmDelete(Request $request, string $id)
     {
         $user = User::find($id);
+        if (!$user) return response()->json(["message" => "User not found"], 404);
+        
         $request->validate(['code' => 'required']);
 
         $deleteKey = 'pending_delete_user_' . $user->email;
@@ -439,7 +441,26 @@ class UserController extends Controller
             return response()->json(["message" => "Invalid or expired verification code."], 422);
         }
 
-        // Code is correct, proceed with deletion
+        // --- CLEANUP LOGIC START ---
+        $cloudinary = new Cloudinary();
+
+        // 1. Delete profile image from Cloudinary
+        if ($user->profile_pic_public_id) {
+            $cloudinary->uploadApi()->destroy($user->profile_pic_public_id);
+        }
+
+        // 2. Delete related records
+        // Use the $user->id instead of $id to ensure correct targeting
+        Favourites::where('user_id', $user->id)->delete();
+        Cards::where('user_id', $user->id)->delete();
+        // Orders::where('user_id', $user->id)->update(['user_id' => null]);
+        // Payments::where('user_id', $user->id)->update(['user_id' => null]);
+
+        // 3. Delete tokens
+        $user->tokens()->delete();
+        // --- CLEANUP LOGIC END ---
+
+        // 4. Delete the user
         $user->delete();
         Cache::forget($deleteKey);
 
