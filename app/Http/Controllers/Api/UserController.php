@@ -34,6 +34,17 @@ class UserController extends Controller
         ]);
     }
 
+    public function findIdByEmail(Request $request) {
+        $request->validate(['email' => 'required|email']);
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Account not found'], 404);
+        }
+
+        return response()->json(['id' => $user->id]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

@@ -27,6 +27,7 @@ Route::post('/admins/login', [AdminController::class, 'login']);
 
 Route::post('/users/password-request/{id}', [UserController::class, 'requestPasswordUpdate']);
 Route::post('/users/password-confirm/{id}', [UserController::class, 'confirmPasswordUpdate']);
+Route::post('/users/find-id', [UserController::class, 'findIdByEmail']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
