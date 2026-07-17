@@ -16,20 +16,17 @@ class OrdersController extends Controller
      */
     public function index()
     {
-        // $orders = Orders::all();
-
-        // return response()->json([
-        //     "message" => "Orders retrieved successfully",
-        //     "data" => $orders
-        // ]);
-
-        $orders = Orders::where('user_id', auth()->id())
-                        ->with('order_items.products') 
-                        ->get();
+        $orders = Orders::where('user_id', auth()->id())->get();
+        
+        // DEBUG: Manually check if items exist for the first order
+        foreach ($orders as $order) {
+            // This will print the items to your logs/console if the relationship works
+            \Log::info('Order Items for ' . $order->_id . ': ' . $order->order_items()->count());
+        }
 
         return response()->json([
             "message" => "Orders retrieved successfully",
-            "data" => $orders
+            "data" => $orders->load('order_items.products') // Use load() instead of with() for debugging
         ]);
     }
 
