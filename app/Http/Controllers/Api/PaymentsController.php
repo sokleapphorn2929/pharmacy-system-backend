@@ -28,8 +28,8 @@ class PaymentsController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'order_id' => 'nullable|exists:orders,_id',
-            'user_id' => 'nullable|exists:users,_id',
+            'order_id' => 'required|exists:orders,_id',
+            // 'user_id' => 'nullable|exists:users,_id',
             'total_price' => 'required|numeric|min:1',
             'total_discount' => 'required|numeric|min:0',
             'tax' => 'required|numeric|min:0',
