@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoices;
+use App\Models\Payments;
 use Illuminate\Http\Request;
 
 class InvoicesController extends Controller
@@ -119,11 +120,15 @@ class InvoicesController extends Controller
             return response()->json(["message" => "Invoice not found"], 404);
         }
 
-        if ($invoice->user_id !== auth()->id()) {
+        // 1. Find the payment linked to this invoice
+        $payment = Payments::find($invoice->payment_id);
+
+        // 2. Security Check: Use the user_id from the payment, not the invoice
+        if (!$payment || $payment->user_id !== auth()->id()) {
             return response()->json(["message" => "Unauthorized"], 403);
         }
 
-        // Instead of generating a PDF, just return the data
+        // Return the data
         return response()->json(["data" => $invoice]);
     }
 
