@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoices;
+use App\Models\Orders;
 use App\Models\Payments;
 use Illuminate\Http\Request;
 
@@ -97,6 +98,7 @@ class PaymentsController extends Controller
         $payments->save();
 
         if ($payments->payment_status === 'paid' && $wasUnpaid) {
+            Orders::where('_id', $payments->order_id)->update(['order_status' => 'completed']);
             $existingInvoice = Invoices::where('payment_id', $payments->_id)->first();
             
             if (!$existingInvoice) {
