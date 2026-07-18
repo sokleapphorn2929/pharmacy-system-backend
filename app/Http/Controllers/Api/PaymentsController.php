@@ -91,8 +91,25 @@ class PaymentsController extends Controller
             'payment_status' => 'sometimes|in:unpaid,paid,refunded',
         ]);
 
+        $wasUnpaid = $payments->payment_status !== 'paid';
+
         $payments->fill($validatedData);
         $payments->save();
+
+        if ($payments->payment_status === 'paid' && $wasUnpaid) {
+            $existingInvoice = Invoices::where('payment_id', $payments->_id)->first();
+            
+            if (!$existingInvoice) {
+                Invoices::create([
+                    'payment_id' => $payments->_id,
+                    'order_id'   => $payments->order_id,
+                    'user_id'    => $payments->user_id,
+                    'admin_id'   => auth()->id(), // Admin performing the update
+                    'invoice_number' => 'INV-' . strtoupper(uniqid()),
+                    'created_at' => now(),
+                ]);
+            }
+        }
 
         return response()->json([
             "message" => "Payment updated successfully",
