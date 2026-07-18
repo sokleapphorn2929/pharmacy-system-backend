@@ -110,6 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [InvoicesController::class, 'update']);
         Route::delete('/{id}', [InvoicesController::class, 'destroy']);
         Route::get('/by-order/{orderId}', [InvoicesController::class, 'getByOrder']);
+        Route::get('/download/{id}', [InvoicesController::class, 'download']);
     });
 
     Route::prefix('favourites')->group(function (){
