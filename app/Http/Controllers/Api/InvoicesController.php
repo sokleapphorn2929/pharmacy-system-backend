@@ -81,6 +81,7 @@ class InvoicesController extends Controller
         return response()->json(["data" => $invoice]);
     }
 
+    // UPDATE THIS METHOD
     public function download($id) 
     {
         $invoice = Invoices::find($id);
@@ -89,16 +90,12 @@ class InvoicesController extends Controller
             return response()->json(["message" => "Invoice not found"], 404);
         }
 
-        // Security check
         if ($invoice->user_id !== auth()->id()) {
             return response()->json(["message" => "Unauthorized"], 403);
         }
 
-        // PDF logic (e.g., using Barryvdh/DomPDF)
-        // If you haven't set up DomPDF, test first with a simple file download
-        $pdf = \App::make('dompdf.wrapper');
-        $pdf->loadHTML('<h1>Invoice #'.$invoice->invoice_number.'</h1>'); 
-        return $pdf->download('invoice.pdf');
+        // Instead of generating a PDF, just return the data
+        return response()->json(["data" => $invoice]);
     }
 
     /**
