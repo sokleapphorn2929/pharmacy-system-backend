@@ -58,10 +58,27 @@ class InvoicesController extends Controller
             ], 404);
         }
 
+        if ($invoices->user_id !== auth()->id()) {
+            return response()->json(["message" => "Unauthorized"], 403);
+        }
+
         return response()->json([
             "message" => "Invoice retrieved successfully",
             "data" => $invoices
         ]);
+    }
+
+    public function getByOrder($orderId) {
+        $invoice = Invoices::where('order_id', $orderId)->first();
+    
+        if (!$invoice) return response()->json(["message" => "Not found"], 404);
+
+        // Security Check
+        if ($invoice->user_id !== auth()->id()) {
+            return response()->json(["message" => "Unauthorized"], 403);
+        }
+
+        return response()->json(["data" => $invoice]);
     }
 
     /**

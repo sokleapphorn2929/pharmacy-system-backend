@@ -32,6 +32,8 @@ Route::post('/users/find-id', [UserController::class, 'findIdByEmail']);
 Route::post('/users/delete-request/{id}', [UserController::class, 'initiateDelete']);
 Route::delete('/users/confirm-delete/{id}', [UserController::class, 'confirmDelete']);
 
+// Route::get('/invoices/by-order/{orderId}', [InvoicesController::class, 'getByOrder']);
+
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('users')->group(function(){
@@ -107,6 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [InvoicesController::class, 'show']);
         Route::put('/{id}', [InvoicesController::class, 'update']);
         Route::delete('/{id}', [InvoicesController::class, 'destroy']);
+        Route::get('/by-order/{orderId}', [InvoicesController::class, 'getByOrder']);
     });
 
     Route::prefix('favourites')->group(function (){
