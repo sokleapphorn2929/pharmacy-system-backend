@@ -92,12 +92,18 @@ class InvoicesController extends Controller
     }
 
     public function getByOrder($orderId) {
-        $invoice = Invoices::where('order_id', $orderId)->first();
-    
-        if (!$invoice) return response()->json(["message" => "Not found"], 404);
+        // 1. Find the payment associated with this order
+        $payment = \App\Models\Payments::where('order_id', $orderId)->first();
+        
+        if (!$payment) return response()->json(["message" => "Payment/Invoice not found"], 404);
 
-        // Security Check
-        if ($invoice->user_id !== auth()->id()) {
+        // 2. Find the invoice linked to that payment
+        $invoice = Invoices::where('payment_id', $payment->id)->first();
+        
+        if (!$invoice) return response()->json(["message" => "Invoice not found"], 404);
+
+        // 3. Security Check (using the user_id from the payment)
+        if ($payment->user_id !== auth()->id()) {
             return response()->json(["message" => "Unauthorized"], 403);
         }
 
