@@ -38,6 +38,8 @@ class PaymentsController extends Controller
             'payment_status' => 'required|in:unpaid,paid,refunded',
         ]);
 
+        $validatedData['total_price'] = floatval($request->total_price) + 2;
+
         $validatedData['user_id'] = auth()->id();
 
         $payments = new Payments();
