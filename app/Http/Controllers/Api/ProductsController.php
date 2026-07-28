@@ -33,7 +33,7 @@ class ProductsController extends Controller
             'product_name' => 'required|string|max:255|unique:categories',
             'product_price' => 'required|numeric|min:1',
             'product_discount' => 'required|numeric|min:0',
-            'product_status' => 'required|in:available, out_of_stock',
+            'product_status' => 'required|in:available,out_of_stock',
             'product_manufactured_date' => 'required|date|before:today',
             'product_expired_date' => 'required|date|after:today',
             'product_detail' => 'nullable|string|max:255',
