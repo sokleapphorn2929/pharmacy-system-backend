@@ -104,7 +104,7 @@ class ProductsController extends Controller
             'product_name' => 'sometimes|string|max:255|unique:categories',
             'product_price' => 'sometimes|numeric|min:1',
             'product_discount' => 'sometimes|numeric|min:0',
-            'product_status' => 'sometimes|in:available, out_of_stock',
+            'product_status' => 'sometimes|in:available,out_of_stock',
             'product_manufactured_date' => 'sometimes|date|before:today',
             'product_expired_date' => 'sometimes|date|after:today',
             'product_detail' => 'nullable|string|max:255',
