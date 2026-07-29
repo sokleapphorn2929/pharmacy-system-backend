@@ -94,12 +94,15 @@ class PaymentsController extends Controller
             'payment_status' => 'sometimes|in:unpaid,paid,refunded',
         ]);
 
-        $wasUnpaid = $payments->payment_status !== 'paid';
+        $wasPaid = $payments->payment_status === 'paid';
 
         $payments->fill($validatedData);
         $payments->save();
 
-        if ($payments->payment_status === 'paid' && $wasUnpaid) {
+        $isNowPaid = $payments->payment_status === 'paid';
+
+        // Scenario 1: Changed from Unpaid -> Paid
+        if ($isNowPaid && !$wasPaid) {
             Orders::where('_id', $payments->order_id)->update(['order_status' => 'completed']);
             $existingInvoice = Invoices::where('payment_id', $payments->_id)->first();
             
@@ -108,11 +111,17 @@ class PaymentsController extends Controller
                     'payment_id' => $payments->_id,
                     'order_id'   => $payments->order_id,
                     'user_id'    => $payments->user_id,
-                    'admin_id'   => auth()->id(), // Admin performing the update
+                    'admin_id'   => auth()->id(),
                     'invoice_number' => 'INV-' . strtoupper(uniqid()),
                     'created_at' => now(),
                 ]);
             }
+        }
+        
+        // Scenario 2: Changed from Paid -> Unpaid (or Refunded)
+        elseif (!$isNowPaid && $wasPaid) {
+            Orders::where('_id', $payments->order_id)->update(['order_status' => 'pending']);
+            Invoices::where('payment_id', $payments->_id)->delete();
         }
 
         return response()->json([
