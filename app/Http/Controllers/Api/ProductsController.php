@@ -32,7 +32,7 @@ class ProductsController extends Controller
         $validatedData = $request->validate([
             'product_name' => 'required|string|max:255|unique:categories',
             'product_price' => 'required|numeric|min:1',
-            'product_discount' => 'required|numeric|min:0',
+            'product_discount' => 'required|numeric|min:0|max:100',
             'product_status' => 'required|in:available,out_of_stock',
             'product_manufactured_date' => 'required|date|before:today',
             'product_expired_date' => 'required|date|after:today',
@@ -41,6 +41,14 @@ class ProductsController extends Controller
             'category_id' => 'nullable|exists:categories,_id',
             'brand_id' => 'nullable|exists:brands,_id',
         ]);
+
+        if (isset($validatedData['product_price']) && isset($validatedData['product_discount']) && $validatedData['product_discount'] > 0) {
+            $price = $validatedData['product_price'];
+            $discount = $validatedData['product_discount'];
+            
+            // Calculate: price - (price * (discount / 100))
+            $validatedData['product_price'] = $price - ($price * ($discount / 100));
+        }
 
         if ($request->hasFile("product_pic")) {
             $cloudinary = new Cloudinary();
@@ -103,7 +111,7 @@ class ProductsController extends Controller
         $validatedData = $request->validate([
             'product_name' => 'sometimes|string|max:255|unique:categories',
             'product_price' => 'sometimes|numeric|min:1',
-            'product_discount' => 'sometimes|numeric|min:0',
+            'product_discount' => 'sometimes|numeric|min:0|max:100',
             'product_status' => 'sometimes|in:available,out_of_stock',
             'product_manufactured_date' => 'sometimes|date|before:today',
             'product_expired_date' => 'sometimes|date|after:today',
@@ -112,6 +120,20 @@ class ProductsController extends Controller
             'category_id' => 'nullable|exists:categories,_id',
             'brand_id' => 'nullable|exists:brands,_id',
         ]);
+
+        // Determine the active price and discount (fallback to existing database record if not being updated)
+        $price = $validatedData['product_price'] ?? $products->product_price;
+        $discount = $validatedData['product_discount'] ?? $products->product_discount;
+
+        // Recalculate price if either price or discount is present in the request
+        if (isset($validatedData['product_price']) || isset($validatedData['product_discount'])) {
+            if ($discount > 0) {
+                $validatedData['product_price'] = $price - ($price * ($discount / 100));
+            } else {
+                // If discount is explicitly set to 0, ensure it uses the base price
+                $validatedData['product_price'] = $price;
+            }
+        }
 
         if ($request->hasFile("product_pic")) {
             $cloudinary = new Cloudinary();
