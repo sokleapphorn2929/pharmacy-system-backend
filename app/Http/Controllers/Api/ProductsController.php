@@ -45,8 +45,8 @@ class ProductsController extends Controller
         $basePrice = $validatedData['product_price'];
         $discount = $validatedData['product_discount'] ?? 0;
 
-        // Calculate final price based on discount
-        $validatedData['final_price'] = $basePrice - ($basePrice * ($discount / 100));
+        // Calculate the final price and map it to your model's column name
+        $validatedData['product_final_price'] = $basePrice - ($basePrice * ($discount / 100));
 
         if ($request->hasFile("product_pic")) {
             $cloudinary = new Cloudinary();
@@ -119,19 +119,14 @@ class ProductsController extends Controller
             'brand_id' => 'nullable|exists:brands,_id',
         ]);
 
-        // 1. If the user sent a new base price, update the stored original_price. Otherwise, use the existing original_price.
-        if (isset($validatedData['product_price'])) {
-            $basePrice = $validatedData['product_price'];
-            $validatedData['original_price'] = $basePrice;
-        } else {
-            $basePrice = $products->original_price ?? $products->product_price;
-        }
-
-        // 2. Get the new discount or fallback to the current one in database
+        // Always grab the true base price (either from the request or falling back to the existing database base price)
+        $basePrice = $validatedData['product_price'] ?? $products->product_price;
+        
+        // Always grab the active discount
         $discount = $validatedData['product_discount'] ?? $products->product_discount;
 
-        // 3. Always calculate the final product_price cleanly using the true base/original price
-        $validatedData['product_price'] = $basePrice - ($basePrice * ($discount / 100));
+        // Recalculate product_final_price using the untouched base price
+        $validatedData['product_final_price'] = $basePrice - ($basePrice * ($discount / 100));
 
         if ($request->hasFile("product_pic")) {
             $cloudinary = new Cloudinary();
