@@ -119,13 +119,19 @@ class ProductsController extends Controller
             'brand_id' => 'nullable|exists:brands,_id',
         ]);
 
-        $basePrice = $validatedData['product_price'] ?? $products->product_price;
+        // 1. If the user sent a new base price, update the stored original_price. Otherwise, use the existing original_price.
+        if (isset($validatedData['product_price'])) {
+            $basePrice = $validatedData['product_price'];
+            $validatedData['original_price'] = $basePrice;
+        } else {
+            $basePrice = $products->original_price ?? $products->product_price;
+        }
+
+        // 2. Get the new discount or fallback to the current one in database
         $discount = $validatedData['product_discount'] ?? $products->product_discount;
 
-        // Apply the calculation: if discount is 10%, price becomes 90. If discount is 0%, it stays/returns to 100.
-        if (isset($validatedData['product_price']) || isset($validatedData['product_discount'])) {
-            $validatedData['product_price'] = $basePrice - ($basePrice * ($discount / 100));
-        }
+        // 3. Always calculate the final product_price cleanly using the true base/original price
+        $validatedData['product_price'] = $basePrice - ($basePrice * ($discount / 100));
 
         if ($request->hasFile("product_pic")) {
             $cloudinary = new Cloudinary();
