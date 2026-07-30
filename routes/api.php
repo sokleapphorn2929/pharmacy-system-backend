@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\BrandsController;
 use App\Http\Controllers\Api\CardsController;
 use App\Http\Controllers\Api\CategoriesController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\FavouritesController;
 use App\Http\Controllers\Api\InvoicesController;
 use App\Http\Controllers\Api\OrderItemsController;
@@ -31,6 +32,8 @@ Route::post('/users/find-id', [UserController::class, 'findIdByEmail']);
 
 Route::post('/users/delete-request/{id}', [UserController::class, 'initiateDelete']);
 Route::delete('/users/confirm-delete/{id}', [UserController::class, 'confirmDelete']);
+
+Route::get('/dashboard/counts', [DashboardController::class, 'index']);
 
 // Route::get('/invoices/by-order/{orderId}', [InvoicesController::class, 'getByOrder']);
 
