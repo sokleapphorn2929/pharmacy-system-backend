@@ -33,6 +33,11 @@ class OrdersController extends Controller
             'order_date' => 'required|date',
             'order_status' => 'required',
             'items' => 'required|array', // Expecting an array of items from frontend
+            'items.*.product_id' => 'required|exists:products,_id',
+            'items.*.qty' => 'required|numeric|min:1',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
+            'items.*.total_price' => 'required|numeric|min:0',
         ]);
 
         try {
@@ -52,6 +57,7 @@ class OrdersController extends Controller
                         'qty'        => $item['qty'],
                         'price'      => $item['price'],
                         'discount'   => $item['discount'] ?? 0,
+                        'total_price' => $item['total_price'],
                     ]);
                 }
                 return $order;

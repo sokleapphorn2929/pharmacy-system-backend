@@ -15,7 +15,8 @@ class OrderItems extends Model
         'product_id',
         'qty',
         'price',
-        'discount'
+        'discount',
+        'total_price',
     ];
 
     public function orders(){
