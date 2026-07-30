@@ -49,10 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('admins')->group(function (){
         Route::get('/', [AdminController::class, 'index']);
+        Route::get('/profile', [AdminController::class, 'profile']);
         Route::get('/{id}', [AdminController::class, 'show']);
         Route::put('/{id}', [AdminController::class, 'update']);
         Route::delete('/{id}', [AdminController::class, 'destroy']);
-        Route::get('/profile', [AdminController::class, 'profile']);
         Route::post('/logout', [AdminController::class, 'logout']);
     });
 
