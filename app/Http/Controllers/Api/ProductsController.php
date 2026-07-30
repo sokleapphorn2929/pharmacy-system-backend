@@ -42,13 +42,11 @@ class ProductsController extends Controller
             'brand_id' => 'nullable|exists:brands,_id',
         ]);
 
-        if (isset($validatedData['product_price']) && isset($validatedData['product_discount']) && $validatedData['product_discount'] > 0) {
-            $price = $validatedData['product_price'];
-            $discount = $validatedData['product_discount'];
-            
-            // Calculate: price - (price * (discount / 100))
-            $validatedData['product_price'] = $price - ($price * ($discount / 100));
-        }
+        $basePrice = $validatedData['product_price'];
+        $discount = $validatedData['product_discount'] ?? 0;
+
+        // Calculate final price based on discount
+        $validatedData['final_price'] = $basePrice - ($basePrice * ($discount / 100));
 
         if ($request->hasFile("product_pic")) {
             $cloudinary = new Cloudinary();
@@ -121,22 +119,12 @@ class ProductsController extends Controller
             'brand_id' => 'nullable|exists:brands,_id',
         ]);
 
-        // Determine price and discount to evaluate
-        $price = $validatedData['product_price'] ?? $products->product_price;
+        // Fallback to existing base price and discount if they aren't included in the request
+        $basePrice = $validatedData['product_price'] ?? $products->product_price;
         $discount = $validatedData['product_discount'] ?? $products->product_discount;
 
-        // Check if either price or discount is being modified in this request
-        if (isset($validatedData['product_price']) || isset($validatedData['product_discount'])) {
-            if ($discount > 0) {
-                // Apply discount calculation
-                $validatedData['product_price'] = $price - ($price * ($discount / 100));
-            } else {
-                // Explicitly reset back to the base/original price when discount is 0
-                // Note: If $price here was already mutated previously, ensure you pass the true base price 
-                // from your frontend form, or store a separate 'original_price' column in your DB.
-                $validatedData['product_price'] = $price; 
-            }
-        }
+        // Always recalculate final_price using the safe base price and current discount
+        $validatedData['final_price'] = $basePrice - ($basePrice * ($discount / 100));
 
         if ($request->hasFile("product_pic")) {
             $cloudinary = new Cloudinary();
