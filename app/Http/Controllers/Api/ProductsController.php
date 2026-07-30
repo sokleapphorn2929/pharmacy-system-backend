@@ -121,17 +121,20 @@ class ProductsController extends Controller
             'brand_id' => 'nullable|exists:brands,_id',
         ]);
 
-        // Determine the active price and discount (fallback to existing database record if not being updated)
+        // Determine price and discount to evaluate
         $price = $validatedData['product_price'] ?? $products->product_price;
         $discount = $validatedData['product_discount'] ?? $products->product_discount;
 
-        // Recalculate price if either price or discount is present in the request
+        // Check if either price or discount is being modified in this request
         if (isset($validatedData['product_price']) || isset($validatedData['product_discount'])) {
             if ($discount > 0) {
+                // Apply discount calculation
                 $validatedData['product_price'] = $price - ($price * ($discount / 100));
             } else {
-                // If discount is explicitly set to 0, ensure it uses the base price
-                $validatedData['product_price'] = $price;
+                // Explicitly reset back to the base/original price when discount is 0
+                // Note: If $price here was already mutated previously, ensure you pass the true base price 
+                // from your frontend form, or store a separate 'original_price' column in your DB.
+                $validatedData['product_price'] = $price; 
             }
         }
 
