@@ -52,7 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [AdminController::class, 'show']);
         Route::put('/{id}', [AdminController::class, 'update']);
         Route::delete('/{id}', [AdminController::class, 'destroy']);
-        Route::post('/profile', [AdminController::class, 'profile']);
+        Route::get('/profile', [AdminController::class, 'profile']);
         Route::post('/logout', [AdminController::class, 'logout']);
     });
 
