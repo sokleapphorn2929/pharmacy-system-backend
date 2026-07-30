@@ -65,6 +65,14 @@ class AdminController extends Controller
         
     }
 
+    public function profile(Request $request)
+    {
+        return response()->json([
+            "message" => "Admin profile retrieved successfully",
+            "data" => $request->user()
+        ]);
+    }
+
     public function login(Request $request){
         $admins = Admins::where("username", $request->username)->first();
 
