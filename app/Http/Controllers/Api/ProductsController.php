@@ -119,12 +119,13 @@ class ProductsController extends Controller
             'brand_id' => 'nullable|exists:brands,_id',
         ]);
 
-        // Fallback to existing base price and discount if they aren't included in the request
         $basePrice = $validatedData['product_price'] ?? $products->product_price;
         $discount = $validatedData['product_discount'] ?? $products->product_discount;
 
-        // Always recalculate final_price using the safe base price and current discount
-        $validatedData['final_price'] = $basePrice - ($basePrice * ($discount / 100));
+        // Apply the calculation: if discount is 10%, price becomes 90. If discount is 0%, it stays/returns to 100.
+        if (isset($validatedData['product_price']) || isset($validatedData['product_discount'])) {
+            $validatedData['product_price'] = $basePrice - ($basePrice * ($discount / 100));
+        }
 
         if ($request->hasFile("product_pic")) {
             $cloudinary = new Cloudinary();
