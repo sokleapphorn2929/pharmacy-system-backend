@@ -1,4 +1,10 @@
 <x-mail::message>
+@slot('header')
+    <a href="{{ config('app.url') }}">
+        KH Pharmacy
+    </a>
+@endslot
+
 # Order Successful! 🚀
 
 Thank you for your purchase. Your payment has been successfully processed.
@@ -9,5 +15,5 @@ Thank you for your purchase. Your payment has been successfully processed.
 You can log in to your dashboard anytime to check your ongoing order status and notifications.
 
 Thanks,<br>
-{{ config('app.name') }}
+KH Pharmacy by Sokleap
 </x-mail::message>
