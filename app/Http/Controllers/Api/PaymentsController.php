@@ -121,7 +121,8 @@ class PaymentsController extends Controller
             // Manually insert notification into MongoDB collection
             try {
                 $order = Orders::find($payments->order_id);
-                $user = $order ? $order->users : null;
+                // Fix: Call users() as a relationship query builder to avoid property casting errors
+                $user = $order ? $order->users()->first() : null;
                 
                 if ($user && $order) {
                     DB::connection('mongodb')->collection('notifications')->insert([
