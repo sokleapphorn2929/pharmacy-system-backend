@@ -125,6 +125,7 @@ class PaymentsController extends Controller
                 $user = $userId ? \App\Models\User::find($userId) : null;
                 
                 if ($user && $order) {
+                    // 1. Insert Database Notification
                     DB::connection('mongodb')->table('notifications')->insert([
                         '_id' => (string) \Illuminate\Support\Str::uuid(),
                         'type' => OrderPaidNotification::class,
@@ -140,9 +141,16 @@ class PaymentsController extends Controller
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
+
+                    // 2. Send Email Notification directly to the user's registered email
+                    if (!empty($user->email)) {
+                        Mail::to($user->email)->send(new OrderSuccessfulMail([
+                            '_id' => (string) $order->_id,
+                            'total_price' => $payments->total_price ?? ($order->total_price ?? 0),
+                        ]));
+                    }
                 }
             } catch (\Exception $e) {
-                // This will log the EXACT error message to storage/logs/laravel.log instead of throwing a 500 crash
                 Log::error("PAYMENT UPDATE ERROR: " . $e->getMessage() . " on line " . $e->getLine());
                 return response()->json([
                     "message" => "Failed to process payment update",
@@ -151,7 +159,6 @@ class PaymentsController extends Controller
             }
         }
         
-        // Scenario 2: Changed from Paid -> Unpaid (or Refunded)
         elseif (!$isNowPaid && $wasPaid) {
             Orders::where('_id', $payments->order_id)->update(['order_status' => 'pending']);
             Invoices::where('payment_id', $payments->_id)->delete();
