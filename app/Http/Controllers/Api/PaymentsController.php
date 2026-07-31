@@ -9,6 +9,7 @@ use App\Models\Payments;
 use Illuminate\Http\Request;
 use App\Notifications\OrderPaidNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PaymentsController extends Controller
 {
@@ -118,11 +119,11 @@ class PaymentsController extends Controller
                 ]);
             }
 
-            // Manually insert notification into MongoDB collection
+            // Manually insert notification into MongoDB collection safely
             try {
                 $order = Orders::find($payments->order_id);
-                // Fix: Call users() as a relationship query builder to avoid property casting errors
-                $user = $order ? $order->users()->first() : null;
+                $userId = $payments->user_id ?? ($order ? $order->user_id : null);
+                $user = $userId ? \App\Models\User::find($userId) : null;
                 
                 if ($user && $order) {
                     DB::connection('mongodb')->collection('notifications')->insert([
@@ -142,7 +143,7 @@ class PaymentsController extends Controller
                     ]);
                 }
             } catch (\Exception $e) {
-                \Log::error("Failed to insert notification: " . $e->getMessage());
+                Log::error("Failed to insert notification: " . $e->getMessage());
             }
         }
         
