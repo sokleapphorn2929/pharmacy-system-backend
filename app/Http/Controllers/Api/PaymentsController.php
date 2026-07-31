@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderSuccessfulMail;
 use App\Models\Invoices;
 use App\Models\Orders;
 use App\Models\Payments;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Notifications\OrderPaidNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentsController extends Controller
 {
@@ -125,7 +127,6 @@ class PaymentsController extends Controller
                 $user = $userId ? \App\Models\User::find($userId) : null;
                 
                 if ($user && $order) {
-                    // 1. Insert Database Notification
                     DB::connection('mongodb')->table('notifications')->insert([
                         '_id' => (string) \Illuminate\Support\Str::uuid(),
                         'type' => OrderPaidNotification::class,
@@ -142,7 +143,6 @@ class PaymentsController extends Controller
                         'updated_at' => now(),
                     ]);
 
-                    // 2. Send Email Notification directly to the user's registered email
                     if (!empty($user->email)) {
                         Mail::to($user->email)->send(new OrderSuccessfulMail([
                             '_id' => (string) $order->_id,
@@ -151,6 +151,7 @@ class PaymentsController extends Controller
                     }
                 }
             } catch (\Exception $e) {
+                // This will log the EXACT error message to storage/logs/laravel.log instead of throwing a 500 crash
                 Log::error("PAYMENT UPDATE ERROR: " . $e->getMessage() . " on line " . $e->getLine());
                 return response()->json([
                     "message" => "Failed to process payment update",
@@ -159,6 +160,7 @@ class PaymentsController extends Controller
             }
         }
         
+        // Scenario 2: Changed from Paid -> Unpaid (or Refunded)
         elseif (!$isNowPaid && $wasPaid) {
             Orders::where('_id', $payments->order_id)->update(['order_status' => 'pending']);
             Invoices::where('payment_id', $payments->_id)->delete();
