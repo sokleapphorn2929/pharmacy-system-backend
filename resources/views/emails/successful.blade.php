@@ -1,6 +1,6 @@
 <x-mail::message>
 @slot('header')
-    <a href="{{ config('app.url') }}">
+    <a href="https://pharmacy-frontend-taupe.vercel.app/">
         KH Pharmacy
     </a>
 @endslot
