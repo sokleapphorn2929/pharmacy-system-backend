@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CategoriesController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\FavouritesController;
 use App\Http\Controllers\Api\InvoicesController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderItemsController;
 use App\Http\Controllers\Api\OrdersController;
 use App\Http\Controllers\Api\PaymentsController;
@@ -134,19 +135,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [CardsController::class, 'destroy']);
     });
 
-    // Add inside your sanctum middleware group
-    Route::get('/notifications', function (Request $request) {
-        return response()->json([
-            'data' => $request->user()->notifications
-        ]);
-    });
-
-    Route::patch('/notifications/{id}/read', function (Request $request, $id) {
-        $notification = $request->user()->notifications()->where('id', $id)->first();
-        if ($notification) {
-            $notification->markAsRead();
-        }
-        return response()->json(['message' => 'Marked as read']);
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
     });
 });
 
