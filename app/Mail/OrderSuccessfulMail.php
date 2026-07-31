@@ -29,7 +29,7 @@ class OrderSuccessfulMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.orders.successful', // We will create this view next
+            markdown: 'emails.successful', // We will create this view next
         );
     }
 }
