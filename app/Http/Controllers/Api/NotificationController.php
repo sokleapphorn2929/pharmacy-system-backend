@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use MongoDB\BSON\ObjectId;
 
 class NotificationController extends Controller
 {
@@ -69,10 +70,13 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        // Check if the notification belongs to the authenticated user before deleting
+        // Check if the notification belongs to the authenticated user using string matching
         $notification = DB::connection('mongodb')
             ->table('notifications')
-            ->where('_id', $id)
+            ->where(function($query) use ($id) {
+                $query->where('_id', $id)
+                    ->orWhere('id', $id);
+            })
             ->where('notifiable_id', (string) $user->_id)
             ->first();
 
@@ -82,7 +86,10 @@ class NotificationController extends Controller
 
         DB::connection('mongodb')
             ->table('notifications')
-            ->where('_id', $id)
+            ->where(function($query) use ($id) {
+                $query->where('_id', $id)
+                    ->orWhere('id', $id);
+            })
             ->delete();
 
         return response()->json(['message' => 'Notification deleted successfully']);
