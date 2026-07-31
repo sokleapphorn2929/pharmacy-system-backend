@@ -22,14 +22,28 @@ class NotificationController extends Controller
         $notifications = $rawNotifications->map(function ($notification) {
             $notificationArray = (array) $notification;
 
-            $id = $notificationArray['_id'] ?? null;
-            // Convert object or BSON ID representation safely to string
-            if (is_object($id) && method_exists($id, '__toString')) {
-                $id = (string) $id;
+            // Check both '_id' and 'id' keys
+            $rawId = $notificationArray['_id'] ?? $notificationArray['id'] ?? null;
+
+            $id = "";
+            if ($rawId) {
+                if (is_string($rawId)) {
+                    $id = $rawId;
+                } elseif (is_object($rawId)) {
+                    if (method_exists($rawId, '__toString')) {
+                        $id = (string) $rawId;
+                    } elseif (isset($rawId->{'$oid'})) {
+                        $id = (string) $rawId->{'$oid'};
+                    } else {
+                        $id = (string) $rawId;
+                    }
+                } elseif (is_array($rawId) && isset($rawId['$oid'])) {
+                    $id = (string) $rawId['$oid'];
+                }
             }
 
             return [
-                'id' => (string) $id,
+                'id' => $id,
                 'type' => $notificationArray['type'] ?? null,
                 'data' => $notificationArray['data'] ?? [],
                 'read_at' => $notificationArray['read_at'] ?? null,
