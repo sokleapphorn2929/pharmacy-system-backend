@@ -26,8 +26,8 @@ class OrderPaidNotification extends Notification
     {
         return [
             'title' => 'Order Successful - Payment Paid',
-            'message' => 'Your payment has been verified by the admin. Order #' . $this->order->id . ' is successfully processed.',
-            'order_id' => $this->order->id,
+            'message' => 'Your payment has been verified by the admin. Order #' . $this->order->_id . ' is successfully processed.',
+            'order_id' => $this->order->_id,
             'status' => 'paid',
         ];
     }

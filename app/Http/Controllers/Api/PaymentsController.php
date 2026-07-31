@@ -116,6 +116,13 @@ class PaymentsController extends Controller
                     'created_at' => now(),
                 ]);
             }
+
+            // ADD THIS: Send notification to the user when payment becomes paid
+            $order = Orders::find($payments->order_id);
+            $user = $payments->users; // or $order->users
+            if ($user && $order) {
+                $user->notify(new \App\Notifications\OrderPaidNotification($order));
+            }
         }
         
         // Scenario 2: Changed from Paid -> Unpaid (or Refunded)
