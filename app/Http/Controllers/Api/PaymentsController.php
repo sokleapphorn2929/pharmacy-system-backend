@@ -7,6 +7,7 @@ use App\Models\Invoices;
 use App\Models\Orders;
 use App\Models\Payments;
 use Illuminate\Http\Request;
+use App\Notifications\OrderPaidNotification;
 
 class PaymentsController extends Controller
 {
