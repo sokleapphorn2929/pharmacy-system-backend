@@ -102,7 +102,6 @@ class PaymentsController extends Controller
 
         $isNowPaid = $payments->payment_status === 'paid';
 
-        // Scenario 1: Changed from Unpaid -> Paid
         if ($isNowPaid && !$wasPaid) {
             Orders::where('_id', $payments->order_id)->update(['order_status' => 'completed']);
             $existingInvoice = Invoices::where('payment_id', $payments->_id)->first();
@@ -118,13 +117,30 @@ class PaymentsController extends Controller
                 ]);
             }
 
-            // <-- ADD IT HERE -->
-            $order = Orders::find($payments->order_id);
-            if ($order) {
-                $user = $order->users; 
-                if ($user) {
-                    $user->notify(new OrderPaidNotification($order));
+            // Manually insert notification into MongoDB collection
+            try {
+                $order = Orders::find($payments->order_id);
+                $user = $order ? $order->users : null;
+                
+                if ($user && $order) {
+                    DB::connection('mongodb')->collection('notifications')->insert([
+                        '_id' => (string) \Illuminate\Support\Str::uuid(),
+                        'type' => OrderPaidNotification::class,
+                        'notifiable_type' => \App\Models\User::class,
+                        'notifiable_id' => (string) $user->_id,
+                        'data' => [
+                            'title' => 'Order Successful - Payment Paid',
+                            'message' => 'Your payment has been verified by the admin. Order #' . $order->_id . ' is successfully processed.',
+                            'order_id' => (string) $order->_id,
+                            'status' => 'paid',
+                        ],
+                        'read_at' => null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
                 }
+            } catch (\Exception $e) {
+                \Log::error("Failed to insert notification: " . $e->getMessage());
             }
         }
         
