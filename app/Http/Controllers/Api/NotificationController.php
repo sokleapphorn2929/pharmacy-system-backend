@@ -64,4 +64,27 @@ class NotificationController extends Controller
 
         return response()->json(['message' => 'Notification not found'], 404);
     }
+
+    public function destroy(Request $request, string $id)
+    {
+        $user = $request->user();
+
+        // Check if the notification belongs to the authenticated user before deleting
+        $notification = DB::connection('mongodb')
+            ->table('notifications')
+            ->where('_id', $id)
+            ->where('notifiable_id', (string) $user->_id)
+            ->first();
+
+        if (!$notification) {
+            return response()->json(['message' => 'Notification not found'], 404);
+        }
+
+        DB::connection('mongodb')
+            ->table('notifications')
+            ->where('_id', $id)
+            ->delete();
+
+        return response()->json(['message' => 'Notification deleted successfully']);
+    }
 }
