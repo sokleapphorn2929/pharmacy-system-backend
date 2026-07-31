@@ -118,11 +118,13 @@ class PaymentsController extends Controller
                 ]);
             }
 
-            // ADD THIS: Send notification to the user when payment becomes paid
+            // <-- ADD IT HERE -->
             $order = Orders::find($payments->order_id);
-            $user = $payments->users; // or $order->users
-            if ($user && $order) {
-                $user->notify(new \App\Notifications\OrderPaidNotification($order));
+            if ($order) {
+                $user = $order->users; 
+                if ($user) {
+                    $user->notify(new OrderPaidNotification($order));
+                }
             }
         }
         
