@@ -8,6 +8,7 @@ use App\Models\Orders;
 use App\Models\Payments;
 use Illuminate\Http\Request;
 use App\Notifications\OrderPaidNotification;
+use Illuminate\Support\Facades\DB;
 
 class PaymentsController extends Controller
 {
