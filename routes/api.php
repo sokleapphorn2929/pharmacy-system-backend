@@ -88,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [OrdersController::class, 'store']);
         // Route::get('/{id}', [OrdersController::class, 'show']);
         Route::put('/{id}', [OrdersController::class, 'update']);
+        Route::patch('/{id}/mark-paid', [OrdersController::class, 'markAsPaid']);
         Route::delete('/{id}', [OrdersController::class, 'destroy']);
     });
 
@@ -131,6 +132,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [CardsController::class, 'show']);
         Route::put('/{id}', [CardsController::class, 'update']);
         Route::delete('/{id}', [CardsController::class, 'destroy']);
+    });
+
+    // Add inside your sanctum middleware group
+    Route::get('/notifications', function (Request $request) {
+        return response()->json([
+            'data' => $request->user()->notifications
+        ]);
+    });
+
+    Route::patch('/notifications/{id}/read', function (Request $request, $id) {
+        $notification = $request->user()->notifications()->where('id', $id)->first();
+        if ($notification) {
+            $notification->markAsRead();
+        }
+        return response()->json(['message' => 'Marked as read']);
     });
 });
 

@@ -8,6 +8,7 @@ use App\Models\Orders;
 use App\Models\Payments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\OrderPaidNotification;
 
 class OrdersController extends Controller
 {
@@ -114,6 +115,33 @@ class OrdersController extends Controller
         return response()->json([
             "message" => "Order updated successfully",
             "data" => $orders
+        ]);
+    }
+
+    public function markAsPaid(Request $request, string $id)
+    {
+        $order = Orders::find($id);
+
+        if (!$order) {
+            return response()->json([
+                "message" => "Order not found",
+            ], 404);
+        }
+
+        // Update order payment status
+        $order->update([
+            'payment_status' => 'paid'
+        ]);
+
+        // Send notification using your 'users' relationship
+        $user = $order->users; 
+        if ($user) {
+            $user->notify(new OrderPaidNotification($order));
+        }
+
+        return response()->json([
+            'message' => 'Payment status updated to paid successfully',
+            'data' => $order
         ]);
     }
 
