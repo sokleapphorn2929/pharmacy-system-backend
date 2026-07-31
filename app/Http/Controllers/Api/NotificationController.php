@@ -69,26 +69,32 @@ class NotificationController extends Controller
     public function destroy(Request $request, string $id)
     {
         $user = $request->user();
+        $userId = (string) ($user->_id ?? $user->id);
+        $notificationId = (string) $id;
 
-        // Check if the notification belongs to the authenticated user using string matching
+        // Find the notification matching either _id or id as strings
         $notification = DB::connection('mongodb')
             ->table('notifications')
-            ->where(function($query) use ($id) {
-                $query->where('_id', $id)
-                    ->orWhere('id', $id);
+            ->where(function($query) use ($notificationId) {
+                $query->where('_id', $notificationId)
+                    ->orWhere('id', $notificationId);
             })
-            ->where('notifiable_id', (string) $user->_id)
+            ->where('notifiable_id', $userId)
             ->first();
 
         if (!$notification) {
-            return response()->json(['message' => 'Notification not found'], 404);
+            return response()->json([
+                'message' => 'Notification not found',
+                'debug_id' => $notificationId,
+                'debug_user' => $userId
+            ], 404);
         }
 
         DB::connection('mongodb')
             ->table('notifications')
-            ->where(function($query) use ($id) {
-                $query->where('_id', $id)
-                    ->orWhere('id', $id);
+            ->where(function($query) use ($notificationId) {
+                $query->where('_id', $notificationId)
+                    ->orWhere('id', $notificationId);
             })
             ->delete();
 
