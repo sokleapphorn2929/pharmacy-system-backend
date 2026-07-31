@@ -151,11 +151,9 @@ class PaymentsController extends Controller
                     }
                 }
             } catch (\Exception $e) {
-                // This will log the EXACT error message to storage/logs/laravel.log instead of throwing a 500 crash
-                Log::error("PAYMENT UPDATE ERROR: " . $e->getMessage() . " on line " . $e->getLine());
                 return response()->json([
-                    "message" => "Failed to process payment update",
-                    "error" => $e->getMessage()
+                    "message" => $e->getMessage(),
+                    "line" => $e->getLine()
                 ], 500);
             }
         }
