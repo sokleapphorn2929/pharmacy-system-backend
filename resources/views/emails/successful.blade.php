@@ -10,7 +10,7 @@
 Thank you for your purchase. Your payment has been successfully processed.
 
 **Order ID:** {{ $orderData['_id'] ?? $orderData['id'] }}  
-**Total Amount:** ${{ $orderData['total_price'] ?? 'N/A' }}
+**Total Amount:** ${{ $orderData['total_price'+1] ?? 'N/A' }}
 
 You can log in to your dashboard anytime to check your ongoing order status and notifications.
 
