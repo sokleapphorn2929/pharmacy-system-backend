@@ -21,7 +21,7 @@
     {{-- Footer --}}
     <x-slot:footer>
         <x-mail::footer>
-            © {{ date('Y') }} KH Pharmacy by Sokleap. @lang('All rights reserved.')
+            © {{ date('Y') }} KH Pharmacy by Sokleap. All rights reserved.
         </x-mail::footer>
     </x-slot:footer>
 </x-mail::layout>
