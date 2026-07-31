@@ -12,7 +12,6 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        // Use table() instead of collection()
         $rawNotifications = DB::connection('mongodb')
             ->table('notifications')
             ->where('notifiable_id', (string) $user->_id)
@@ -23,12 +22,13 @@ class NotificationController extends Controller
             $notificationArray = (array) $notification;
 
             $id = $notificationArray['_id'] ?? null;
-            if ($id instanceof \MongoDB\BSON\ObjectId) {
+            // Convert object or BSON ID representation safely to string
+            if (is_object($id) && method_exists($id, '__toString')) {
                 $id = (string) $id;
             }
 
             return [
-                'id' => $id,
+                'id' => (string) $id,
                 'type' => $notificationArray['type'] ?? null,
                 'data' => $notificationArray['data'] ?? [],
                 'read_at' => $notificationArray['read_at'] ?? null,
@@ -46,22 +46,17 @@ class NotificationController extends Controller
     {
         $user = $request->user();
         
-        $queryId = $id;
-        if (class_exists(\MongoDB\BSON\ObjectId::class) && \MongoDB\BSON\ObjectId::isValid($id)) {
-            $queryId = new \MongoDB\BSON\ObjectId($id);
-        }
-
-        // Use table() here as well
+        // Pass the string ID directly to the query builder
         $notification = DB::connection('mongodb')
             ->table('notifications')
-            ->where('_id', $queryId)
+            ->where('_id', $id)
             ->where('notifiable_id', (string) $user->_id)
             ->first();
 
         if ($notification) {
             DB::connection('mongodb')
                 ->table('notifications')
-                ->where('_id', $queryId)
+                ->where('_id', $id)
                 ->update(['read_at' => now()]);
 
             return response()->json(['message' => 'Notification marked as read']);
