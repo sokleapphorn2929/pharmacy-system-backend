@@ -105,22 +105,21 @@ class PaymentsController extends Controller
         $isNowPaid = $payments->payment_status === 'paid';
 
         if ($isNowPaid && !$wasPaid) {
-            Orders::where('_id', $payments->order_id)->update(['order_status' => 'completed']);
-            $existingInvoice = Invoices::where('payment_id', $payments->_id)->first();
-            
-            if (!$existingInvoice) {
-                Invoices::create([
-                    'payment_id' => $payments->_id,
-                    'order_id'   => $payments->order_id,
-                    'user_id'    => $payments->user_id,
-                    'admin_id'   => auth()->id(),
-                    'invoice_number' => 'INV-' . strtoupper(uniqid()),
-                    'created_at' => now(),
-                ]);
-            }
-
-            // Manually insert notification into MongoDB collection safely
             try {
+                Orders::where('_id', $payments->order_id)->update(['order_status' => 'completed']);
+                
+                $existingInvoice = Invoices::where('payment_id', $payments->_id)->first();
+                if (!$existingInvoice) {
+                    Invoices::create([
+                        'payment_id' => $payments->_id,
+                        'order_id'   => $payments->order_id,
+                        'user_id'    => $payments->user_id,
+                        'admin_id'   => auth()->id(),
+                        'invoice_number' => 'INV-' . strtoupper(uniqid()),
+                        'created_at' => now(),
+                    ]);
+                }
+
                 $order = Orders::find($payments->order_id);
                 $userId = $payments->user_id ?? ($order ? $order->user_id : null);
                 $user = $userId ? \App\Models\User::find($userId) : null;
@@ -143,7 +142,12 @@ class PaymentsController extends Controller
                     ]);
                 }
             } catch (\Exception $e) {
-                Log::error("Failed to insert notification: " . $e->getMessage());
+                // This will log the EXACT error message to storage/logs/laravel.log instead of throwing a 500 crash
+                Log::error("PAYMENT UPDATE ERROR: " . $e->getMessage() . " on line " . $e->getLine());
+                return response()->json([
+                    "message" => "Failed to process payment update",
+                    "error" => $e->getMessage()
+                ], 500);
             }
         }
         
