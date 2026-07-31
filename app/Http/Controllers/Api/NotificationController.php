@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use MongoDB\Laravel\Eloquent\Casts\ObjectId;
 
 class NotificationController extends Controller
 {
@@ -20,15 +21,21 @@ class NotificationController extends Controller
             ->get();
 
         $notifications = $rawNotifications->map(function ($notification) {
-            // Handle MongoDB collection results (which may return _id as an ObjectId or string)
-            $id = is_array($notification) ? ($notification['_id'] ?? null) : ($notification->_id ?? null);
-            
+            // Convert to array if it's an object to standardize handling
+            $notificationArray = (array) $notification;
+
+            // Extract _id safely
+            $id = $notificationArray['_id'] ?? null;
+            if ($id instanceof ObjectId) {
+                $id = (string) $id;
+            }
+
             return [
-                'id' => (string) $id,
-                'type' => $notification['type'] ?? $notification->type ?? null,
-                'data' => $notification['data'] ?? $notification->data ?? [],
-                'read_at' => $notification['read_at'] ?? $notification->read_at ?? null,
-                'created_at' => $notification['created_at'] ?? $notification->created_at ?? null,
+                'id' => $id,
+                'type' => $notificationArray['type'] ?? null,
+                'data' => $notificationArray['data'] ?? [],
+                'read_at' => $notificationArray['read_at'] ?? null,
+                'created_at' => $notificationArray['created_at'] ?? null,
             ];
         });
 
@@ -42,16 +49,23 @@ class NotificationController extends Controller
     {
         $user = $request->user();
         
+        // If your MongoDB stores _id as ObjectId, you may need to wrap $id in an ObjectId instance depending on your package version:
+        // e.g., new \MongoDB\BSON\ObjectId($id)
+        $queryId = $id;
+        if (class_exists(ObjectId::class) && ObjectId::isValid($id)) {
+            $queryId = new ObjectId($id);
+        }
+
         $notification = DB::connection('mongodb')
             ->collection('notifications')
-            ->where('_id', $id)
+            ->where('_id', $queryId)
             ->where('notifiable_id', (string) $user->_id)
             ->first();
 
         if ($notification) {
             DB::connection('mongodb')
                 ->collection('notifications')
-                ->where('_id', $id)
+                ->where('_id', $queryId)
                 ->update(['read_at' => now()]);
 
             return response()->json(['message' => 'Notification marked as read']);
