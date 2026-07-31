@@ -125,7 +125,7 @@ class PaymentsController extends Controller
                 $user = $userId ? \App\Models\User::find($userId) : null;
                 
                 if ($user && $order) {
-                    DB::connection('mongodb')->collection('notifications')->insert([
+                    DB::connection('mongodb')->table('notifications')->insert([
                         '_id' => (string) \Illuminate\Support\Str::uuid(),
                         'type' => OrderPaidNotification::class,
                         'notifiable_type' => \App\Models\User::class,
