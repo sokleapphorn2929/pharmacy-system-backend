@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-// You can remove use App\Mail\VerificationCodeMail if it's no longer used anywhere else
+use App\Mail\VerificationCodeMail;
 use App\Models\Cards;
 use App\Models\Favourites;
 use App\Models\Orders;
@@ -16,34 +16,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http; // <-- Make sure Http facade is imported
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    // Helper function to send email via Brevo HTTP API (Port 443 - never blocked by Render)
-    private function sendBrevoEmail($toEmail, $toName, $subject, $htmlContent)
-    {
-        return Http::withHeaders([
-            'api-key' => env('BREVO_API_KEY'),
-            'Content-Type' => 'application/json',
-        ])->post('https://api.brevo.com/v3/smtp/email', [
-            'sender' => [
-                'name' => env('MAIL_FROM_NAME', 'Pharmacy System'),
-                'email' => env('MAIL_FROM_ADDRESS') // Must be a verified sender email in your Brevo account
-            ],
-            'to' => [
-                [
-                    'email' => $toEmail,
-                    'name' => $toName
-                ]
-            ],
-            'subject' => $subject,
-            'htmlContent' => $htmlContent
-        ]);
-    }
-
     /**
      * Display a listing of the resource.
      */
@@ -112,13 +89,7 @@ class UserController extends Controller
 
         Cache::put('pending_registration_' . $validatedData['email'], $registrationData, now()->addMinutes(10));
 
-        // Send via Brevo HTTP API
-        $this->sendBrevoEmail(
-            $validatedData['email'],
-            $validatedData['username'],
-            'Your Verification Code',
-            "<p>Hello {$validatedData['username']},</p><p>Your verification code is: <strong>{$verificationCode}</strong></p>"
-        );
+        Mail::to($validatedData['email'])->send(new VerificationCodeMail($validatedData['username'], $verificationCode));
             
         return response()->json([
             "status"  => "registration_pending",
@@ -153,13 +124,9 @@ class UserController extends Controller
 
         Cache::put($loginKey, $verificationCode, now()->addMinutes(10));
 
-        // Send via Brevo HTTP API
-        $this->sendBrevoEmail(
-            $user->email,
-            $user->username,
-            'Your Login Verification Code',
-            "<p>Hello {$user->username},</p><p>Your login verification code is: <strong>{$verificationCode}</strong></p>"
-        );
+        Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
+
+        $token = $user->createToken("auth_token")->plainTextToken;
 
         return response()->json([
             "status"  => "login_pending",
@@ -255,11 +222,12 @@ class UserController extends Controller
                     $cloudinary->uploadApi()->destroy($user->profile_pic_public_id);
                 }
 
-                Favourites::where('user_id', $user->id)->delete();
-                Cards::where('user_id', $user->id)->delete();
-                Orders::where('user_id', $user->id)->update(['user_id' => null]);
-                Payments::where('user_id', $user->id)->update(['user_id' => null]);
+                Favourites::where('user_id', $id)->delete();
+                Cards::where('user_id', $id)->delete();
+                Orders::where('user_id', $id)->update(['user_id' => null]);
+                Payments::where('user_id', $id)->update(['user_id' => null]);
 
+                // Delete personal access tokens first if using Sanctum
                 $user->tokens()->delete();
                 $user->delete();
             }
@@ -291,6 +259,9 @@ class UserController extends Controller
         ],200)->withCookie($cookie);
     }
 
+    /**
+     * Display the specified resource.
+     */
     public function show(string $id)
     {
         $user = User::find($id);
@@ -305,10 +276,14 @@ class UserController extends Controller
             "message" => "User retrieved successfully",
             "data" => $user
         ]);
-    }
+}
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, string $id)
     {
+        
         $user = User::find($id);
 
         if(!$user){
@@ -364,6 +339,7 @@ class UserController extends Controller
 
     public function updatePassword(Request $request, string $id)
     {
+        
         $user = User::find($id);
 
         if(!$user){
@@ -397,13 +373,7 @@ class UserController extends Controller
 
         $verificationCode = rand(100000, 999999);
 
-        // Send via Brevo HTTP API
-        $this->sendBrevoEmail(
-            $user->email,
-            $user->username,
-            'Password Reset Code',
-            "<p>Hello {$user->username},</p><p>Your password reset code is: <strong>{$verificationCode}</strong></p>"
-        );
+        Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
 
         $user->verification_code = $verificationCode;
         $user->code_expires_at = now()->addMinutes(10);
@@ -441,6 +411,7 @@ class UserController extends Controller
         ]);
     }
 
+    // Step 1: Send the code (Trigger this via POST)
     public function initiateDelete(string $id)
     {
         $user = User::find($id);
@@ -450,18 +421,12 @@ class UserController extends Controller
         $deleteKey = 'pending_delete_user_' . $user->email;
 
         Cache::put($deleteKey, $verificationCode, now()->addMinutes(10));
-        
-        // Send via Brevo HTTP API
-        $this->sendBrevoEmail(
-            $user->email,
-            $user->username,
-            'Account Deletion Code',
-            "<p>Hello {$user->username},</p><p>Your account deletion code is: <strong>{$verificationCode}</strong></p>"
-        );
+        Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
 
         return response()->json(["message" => "Verification code sent to your email."]);
     }
 
+    // Step 2: Actually delete the user (Trigger this via DELETE)
     public function confirmDelete(Request $request, string $id)
     {
         $user = User::find($id);
@@ -476,22 +441,35 @@ class UserController extends Controller
             return response()->json(["message" => "Invalid or expired verification code."], 422);
         }
 
+        // --- CLEANUP LOGIC START ---
         $cloudinary = new Cloudinary();
 
+        // 1. Delete profile image from Cloudinary
         if ($user->profile_pic_public_id) {
             $cloudinary->uploadApi()->destroy($user->profile_pic_public_id);
         }
 
+        // 2. Delete related records
+        // Use the $user->id instead of $id to ensure correct targeting
         Favourites::where('user_id', $user->id)->delete();
         Cards::where('user_id', $user->id)->delete();
+        // Orders::where('user_id', $user->id)->update(['user_id' => null]);
+        // Payments::where('user_id', $user->id)->update(['user_id' => null]);
 
+        // 3. Delete tokens
         $user->tokens()->delete();
+        // --- CLEANUP LOGIC END ---
+
+        // 4. Delete the user
         $user->delete();
         Cache::forget($deleteKey);
 
         return response()->json(["message" => "Account successfully deleted."]);
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(string $id)
     {
         $user = User::find($id);
@@ -507,13 +485,9 @@ class UserController extends Controller
 
         Cache::put($deleteKey, $verificationCode, now()->addMinutes(10));
 
-        // Send via Brevo HTTP API
-        $this->sendBrevoEmail(
-            $user->email,
-            $user->username,
-            'Account Deletion Code',
-            "<p>Hello {$user->username},</p><p>Your account deletion code is: <strong>{$verificationCode}</strong></p>"
-        );
+        Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
+
+        // $user->delete();
 
         return response()->json([
             "message" => "A verification code has been sent to your email to confirm account deletion.",
